@@ -18,4 +18,13 @@ resource "aws_instance" "app" {
   }
 
   tags = merge(local.tags, { Name = local.name })
+
+  lifecycle {
+    # local.ami_id tracks Canonical's latest image, so it changes
+    # whenever a new one is published, and a changed AMI forces a
+    # replacement (losing whatever is installed on the host). Keep the
+    # image an instance was launched with; to move to a newer one on
+    # purpose, run `tofu apply -replace=module.brainkb.aws_instance.app`.
+    ignore_changes = [ami]
+  }
 }
