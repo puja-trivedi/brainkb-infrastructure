@@ -230,6 +230,15 @@ That's set in each provider's app settings, not in this repo.
 
 ## Known gaps
 
+- **Disk space.** The `brainkb-unified` image is large: it pulls in
+  several GB of NVIDIA/CUDA Python libraries even though this server has
+  no GPU, and the first build briefly needs room for both the packed and
+  the unpacked layers. The original 30 GB disk ran out ("no space left on
+  device"), so the recipe now sets 100 GB. After an `apply` that grows
+  the disk, make the filesystem use the new space on the server:
+  `sudo growpart /dev/nvme0n1 1 && sudo resize2fs /dev/nvme0n1p1`, then
+  check with `df -h /`. Run `docker builder prune -af` after a failed
+  build to reclaim what it used.
 - **Memory.** `t3.medium` has 4 GB of RAM. Production reserves 16 GB for
   the backend container, and `npm run build` needs around 2 GB on its
   own. If builds or services get killed (`dmesg | grep -i oom`, or
