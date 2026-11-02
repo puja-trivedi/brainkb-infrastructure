@@ -41,9 +41,11 @@ resource "aws_acm_certificate_validation" "app" {
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
 
-# Per-hostname A-ALIAS records pointing at the ALB.
+# Per-hostname A-ALIAS records pointing at the ALB. Skipped when
+# create_app_dns_records is false, so the hostnames keep pointing
+# wherever they point today.
 resource "aws_route53_record" "app" {
-  for_each = { for t in var.alb_targets : t.hostname => t }
+  for_each = var.create_app_dns_records ? { for t in var.alb_targets : t.hostname => t } : {}
 
   allow_overwrite = var.dns_allow_overwrite
   zone_id         = var.hosted_zone_id

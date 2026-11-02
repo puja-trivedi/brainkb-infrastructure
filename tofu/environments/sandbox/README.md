@@ -50,14 +50,22 @@ and its three public subnets in us-east-2 (see `discovery.md`).
 
 - ACM certificate covering all three sandbox hostnames, DNS-validated
   through Route 53 automatically.
-- A-ALIAS records in `brainkb.org` (zone `Z0691…`, per `discovery.md`)
-  for `sandbox.brainkb.org`, `usermanagement.sandbox.brainkb.org`,
-  and `mlservice.sandbox.brainkb.org`, pointing at the ALB.
-- `dns_allow_overwrite = true` — sandbox's Route 53 records for
-  `sandbox.brainkb.org` etc. already exist from the manual ALB setup
-  (per `sandbox/notes.md`); this flag lets tofu take them over in
-  place, re-pointing them at the tofu-managed ALB. Never set true for
-  production — import existing records into state first instead.
+- **The sandbox hostnames are not moved onto the new ALB yet.**
+  `create_app_dns_records = false` in `sandbox.tfvars` (team decision,
+  2026-11-02), so `sandbox.brainkb.org`,
+  `usermanagement.sandbox.brainkb.org` and
+  `mlservice.sandbox.brainkb.org` keep pointing at the
+  manually-built `sandbox-alb`. Test the new stack through its own
+  ALB address (see "Testing the new stack" below).
+- When the team decides to move them, set
+  `create_app_dns_records = true`: tofu then writes A-ALIAS records in
+  `brainkb.org` (zone `Z0691…`, per `discovery.md`) pointing each
+  hostname at the new ALB.
+- `dns_allow_overwrite = true` lets tofu write records that already
+  exist: the ACM validation CNAMEs now, and the hostnames' A records
+  from the manual setup once they're moved (per `sandbox/notes.md`).
+  Never set true for production — import existing records into state
+  first instead.
 
 **Storage — deliberately off by default in sandbox**
 
@@ -141,10 +149,10 @@ After apply, useful commands:
     tofu output app_hostnames
     tofu output -json pyinfra    # structured, for the PyInfra adapter
 
-## Testing without waiting for DNS
+## Testing the new stack
 
-Route 53 records propagate in seconds usually, but you can hit the ALB
-directly before that by supplying the Host header:
+While the hostnames still point at the old `sandbox-alb`, reach the new
+ALB directly and tell it which hostname you mean with a Host header:
 
     curl -k -H "Host: sandbox.brainkb.org" "https://$(tofu output -raw alb_dns_name)/"
 

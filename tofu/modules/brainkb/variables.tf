@@ -96,6 +96,12 @@ variable "acm_certificate_arn" {
   default     = null
 }
 
+variable "create_app_dns_records" {
+  description = "If true, create an A-ALIAS record per alb_targets hostname pointing at the ALB. Set false to build the stack without moving any hostname onto it; the ACM cert and its validation records are created either way."
+  type        = bool
+  default     = true
+}
+
 variable "dns_allow_overwrite" {
   description = "If true, Route 53 records may replace existing records with the same name+type. Appropriate for sandbox where records already exist from the manual setup (see sandbox/notes.md); never set true for production — import existing records into state before apply instead."
   type        = bool

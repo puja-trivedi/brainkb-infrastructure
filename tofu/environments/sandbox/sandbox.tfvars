@@ -56,12 +56,20 @@ alb_targets = [
   },
 ]
 
-# sandbox.brainkb.org (and the two subdomains) already have live
-# Route 53 aliases pointing at the manually-built sandbox-alb (per
-# sandbox/notes.md step 7b). This flag lets tofu take those records
-# over and re-point them at the tofu-managed ALB. NEVER set true in
-# production — production records should be imported into state
-# before apply.
+# Leave the sandbox hostnames on the manually-built sandbox-alb for
+# now (team decision, 2026-11-02): tofu builds the new stack, but
+# sandbox.brainkb.org, usermanagement.sandbox.brainkb.org and
+# mlservice.sandbox.brainkb.org keep serving from the current setup.
+# Test the new stack via its ALB address instead (see README). Flip to
+# true only when the team decides to move the hostnames over.
+create_app_dns_records = false
+
+# Lets tofu write Route 53 records that already exist. With
+# create_app_dns_records = false this only affects the ACM validation
+# CNAMEs (which may already exist from the manual cert); when the
+# hostnames are moved over, it also lets tofu take over their A
+# records from sandbox-alb (per sandbox/notes.md step 7b). NEVER set
+# true in production — import existing records into state instead.
 dns_allow_overwrite = true
 
 # Sandbox does not create FSx by default — bootstrap.md notes it's
