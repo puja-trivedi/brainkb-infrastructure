@@ -1,5 +1,10 @@
 # Sandbox
 
+> This file covers the co-tenant sandbox on production's EC2
+> (`*.sandbox.brainkb.org`). For the dedicated OpenTofu-managed server
+> (`test.brainkb.org`, `tofu/environments/sandbox/`), follow
+> `new-server-setup.md` instead.
+
 Same two-part shape as `production/` (Docker backend + PM2 UI), kept intentionally close to
 it so drift stays visible in diffs. Confirmed fine to run on the **same EC2 instance** as
 production (it's essentially idle — 0.39% CPU) — just needs its own network, container
