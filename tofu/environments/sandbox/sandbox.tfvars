@@ -57,6 +57,16 @@ alb_targets = [
     port              = 8007
     health_check_path = "/"
   },
+  # query_service: the co-tenant sandbox (and production) reach it
+  # directly on the host's IP and port. Here it goes behind the ALB like
+  # the others (decisions.md §7's lean). Keep it last: listener-rule
+  # priorities follow list order, so appending leaves the others alone.
+  {
+    name              = "queryservice"
+    hostname          = "queryservice.test.brainkb.org"
+    port              = 8010
+    health_check_path = "/"
+  },
 ]
 
 # Don't publish the test.* hostnames yet (team decision, 2026-11-02):

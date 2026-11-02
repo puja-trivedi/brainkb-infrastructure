@@ -48,11 +48,13 @@ and its three public subnets in us-east-2 (see `discovery.md`).
 
 **TLS + DNS**
 
-- ACM certificate covering all three sandbox hostnames, DNS-validated
+- ACM certificate covering all four sandbox hostnames, DNS-validated
   through Route 53 automatically.
 - **Its own hostnames** (team decision, 2026-11-02):
-  `test.brainkb.org`, `usermanagement.test.brainkb.org` and
-  `mlservice.test.brainkb.org`. The existing `sandbox.brainkb.org`
+  `test.brainkb.org`, `usermanagement.test.brainkb.org`,
+  `mlservice.test.brainkb.org` and `queryservice.test.brainkb.org`
+  (query_service sits behind the ALB here, unlike production and the
+  co-tenant sandbox, which reach it on the host's IP and port). The existing `sandbox.brainkb.org`
   names stay on the manually-built `sandbox-alb` and are never touched
   by this stack.
 - **Not published yet**: `create_app_dns_records = false` in
