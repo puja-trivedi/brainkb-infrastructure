@@ -30,7 +30,8 @@ hosted_zone_id = "Z06918342ADZVPCW09HXW"
 # sandbox.auto.tfvars (gitignored) or TF_VAR_ssh_allowed_cidrs. See
 # README.
 
-# Sandbox ALB routing. Ports match the sandbox +10000 convention.
+# Sandbox ALB routing. Ports are production's own (not the +10000
+# shift the co-tenant sandbox uses), since this is a separate instance.
 # Hostnames are new test.* names (team decision, 2026-11-02), separate
 # from the sandbox.* names the manually-built setup serves, so this
 # stack never takes those over. Health check paths are
@@ -41,19 +42,19 @@ alb_targets = [
   {
     name              = "ui"
     hostname          = "test.brainkb.org"
-    port              = 13000
+    port              = 3000
     health_check_path = "/"
   },
   {
     name              = "usermgmt"
     hostname          = "usermanagement.test.brainkb.org"
-    port              = 18004
+    port              = 8004
     health_check_path = "/"
   },
   {
     name              = "mlservice"
     hostname          = "mlservice.test.brainkb.org"
-    port              = 18007
+    port              = 8007
     health_check_path = "/"
   },
 ]

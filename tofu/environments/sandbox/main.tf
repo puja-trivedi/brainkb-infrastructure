@@ -9,11 +9,11 @@ module "brainkb" {
   ssh_allowed_cidrs = var.ssh_allowed_cidrs
   hosted_zone_id    = var.hosted_zone_id
 
-  # Sandbox port convention: production port + 10000 (per the recent
-  # sandbox commit that moved UI from 3080 → 13000). Keeps sandbox and
-  # prod distinct when they cohabit an EC2 or share port maps.
-  ui_port      = 13000
-  backend_port = 18000
+  # Same ports as production. The +10000 shift (13000, 18004, ...) was
+  # only needed while sandbox shared prod's EC2; on its own instance
+  # there's nothing to collide with.
+  ui_port      = 3000
+  backend_port = 8000
 
   alb_targets         = var.alb_targets
   dns_allow_overwrite = var.dns_allow_overwrite
