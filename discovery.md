@@ -49,7 +49,7 @@ Production EC2 sits in `subnet-04b630da6d9b3674c` (us-east-2a).
 | Name tag | `BrainKB` |
 | Instance type | `c5.4xlarge` (16 vCPU, 32 GB RAM) |
 | AMI | `ami-0f5fcdfbd140e4ab7` |
-| Root volume | `vol-0c92bca751c04c3a6` (EBS, single volume) |
+| Root volume | `vol-0c92bca751c04c3a6` (EBS, single volume; 120 GB gp3, **not encrypted**) |
 | AZ | `us-east-2a` |
 | Private IP | `172.31.15.33` |
 | Public IP | `3.13.122.67` |
@@ -81,9 +81,16 @@ the AWS "launch instance" wizard. Inbound rules:
 | 13000 | `sg-02e6912482926898b` | sandbox UI |
 | 18004 | `sg-02e6912482926898b` | sandbox usermanagement |
 | 18007 | `sg-02e6912482926898b` | sandbox ml_service |
+| 18010 | `0.0.0.0/0` | sandbox query_service |
+| 18080 | `sg-02e6912482926898b` | sandbox (described as "sandbox sb") |
 
 Egress: default all-traffic to `0.0.0.0/0`, plus a redundant explicit
 outbound to port 8004.
+
+The 18010 and 18080 rows and the root volume details were added
+2026-11-02 from the first production `tofu plan`. The
+"Purpose" column paraphrases each rule; the exact AWS descriptions are
+in `tofu/environments/production/main.tf`.
 
 ### `sg-09898d5bd183b7f15` — FSx Lustre security group
 
