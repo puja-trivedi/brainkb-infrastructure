@@ -16,11 +16,12 @@ time through. Update this file when you do.
 | | Co-tenant sandbox (`README.md`) | This server |
 |---|---|---|
 | Host | Production's EC2 | Its own EC2 (`brainkb-sandbox`, `t3.medium`) |
-| Hostnames | `*.sandbox.brainkb.org` | `test.brainkb.org`, `usermanagement.test.brainkb.org`, `mlservice.test.brainkb.org`, `queryservice.test.brainkb.org` (needs #14) |
+| Hostnames | `*.sandbox.brainkb.org` | `test.brainkb.org`, `usermanagement.test.brainkb.org`, `mlservice.test.brainkb.org`, `queryservice.test.brainkb.org` |
 | Ports | +10000 (13000, 18000, 18004, 18007, 18010) | Production's own (3000, 8000, 8004, 8007, 8010) |
 | Load balancer | `sandbox-alb`, built by hand | `brainkb-sandbox-alb`, managed by OpenTofu |
 | Login | SSH | SSM Session Manager only. No port 22 is open. |
-| Inbound traffic | Several ports open | Only 3000, 8004, 8007 (and 8010 with #14), and only from the load balancer |
+| Inbound traffic | Several ports open | Only 3000, 8004, 8007 and 8010, and only from the load balancer |
+| Query service | Browsers call the host's IP on port 18010 | Behind the load balancer at `queryservice.test.brainkb.org` (#14, following `decisions.md` §7) |
 
 The compose file and both env templates in this directory are reused.
 Only the values change.
@@ -165,8 +166,8 @@ grep -n 'brainkb.org\|^PORT=' .env.local
 The `sed` turns every `sandbox.brainkb.org` into `test.brainkb.org`
 (`usermanagement.sandbox.` becomes `usermanagement.test.`, and so on),
 including `NEXTAUTH_URL`, and points the query-service lines at
-`https://queryservice.test.brainkb.org`. That address only works once
-#14 (the query-service route) is merged and applied. Fill in
+`https://queryservice.test.brainkb.org` (the load-balancer route from
+#14). Fill in
 `NEXTAUTH_SECRET` and the other blank values. The chat-service lines
 still say `<host>`; chat_service is unused, so leave them.
 
@@ -190,7 +191,7 @@ ALB=$(tofu output -raw alb_dns_name)
 curl -k -sI -H "Host: test.brainkb.org" "https://$ALB/"
 curl -k -sI -H "Host: usermanagement.test.brainkb.org" "https://$ALB/"
 curl -k -sI -H "Host: mlservice.test.brainkb.org" "https://$ALB/"
-curl -k -sI -H "Host: queryservice.test.brainkb.org" "https://$ALB/"   # needs #14
+curl -k -sI -H "Host: queryservice.test.brainkb.org" "https://$ALB/"
 ```
 
 Before the apps were installed, these returned `502` (the load balancer
@@ -219,9 +220,8 @@ tofu apply -var-file=sandbox.tfvars
 curl -sI https://test.brainkb.org/
 ```
 
-The four additions are the A records for the `test.*` names (three if
-#14 isn't applied yet). If the plan shows anything else, stop and check
-before applying.
+The four additions are the A records for the `test.*` names. If the
+plan shows anything else, stop and check before applying.
 
 Logging in on the UI also needs the OAuth providers (GitHub, ORCID,
 Globus) to accept the new callback URL,
@@ -230,12 +230,6 @@ That's set in each provider's app settings, not in this repo.
 
 ## Known gaps
 
-- **Query service needs #14.** In the co-tenant setup the UI calls it
-  directly at the host's public IP on port 18010. This server has no
-  open port for it, so it's routed through the load balancer instead, at
-  `queryservice.test.brainkb.org` → 8010 (#14, following
-  `decisions.md` §7). Until #14 is merged and applied, the UI's query
-  features won't work on this server.
 - **Memory.** `t3.medium` has 4 GB of RAM. Production reserves 16 GB for
   the backend container, and `npm run build` needs around 2 GB on its
   own. If builds or services get killed (`dmesg | grep -i oom`, or
