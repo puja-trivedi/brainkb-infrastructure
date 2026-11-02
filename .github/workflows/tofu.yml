@@ -41,6 +41,7 @@ jobs:
         dir:
           - tofu/modules/brainkb
           - tofu/environments/sandbox
+          - tofu/environments/production
     steps:
       - uses: actions/checkout@v4
       - uses: opentofu/setup-opentofu@v1
