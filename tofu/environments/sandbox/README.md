@@ -57,12 +57,12 @@ and its three public subnets in us-east-2 (see `discovery.md`).
   co-tenant sandbox, which reach it on the host's IP and port). The existing `sandbox.brainkb.org`
   names stay on the manually-built `sandbox-alb` and are never touched
   by this stack.
-- **Not published yet**: `create_app_dns_records = false` in
-  `sandbox.tfvars`, so the `test.*` names don't resolve until the team
-  flips it to `true`. Then tofu writes A-ALIAS records in
-  `brainkb.org` (zone `Z0691…`, per `discovery.md`) pointing each one
-  at the new ALB. Until then, test through the ALB's own address (see
-  "Testing the new stack" below).
+- **Published**: `create_app_dns_records = true` in `sandbox.tfvars`
+  (since 2026-11-02), so tofu writes A-ALIAS records in `brainkb.org`
+  (zone `Z0691…`, per `discovery.md`) pointing each `test.*` name at
+  the new ALB. Setting it back to `false` removes just those records.
+  While it was off, the stack was tested through the ALB's own address
+  (see "Testing the new stack" below).
 - `dns_allow_overwrite = false`: if a `test.*` record (or a cert
   validation record) already exists, apply fails instead of replacing
   it. Check first with `dig +short test.brainkb.org`; empty output
