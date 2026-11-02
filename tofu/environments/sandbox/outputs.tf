@@ -19,7 +19,7 @@ output "pyinfra" {
 }
 
 output "alb_dns_name" {
-  description = "ALB DNS name — useful for testing before Route 53 records propagate (e.g., curl with -H \"Host: sandbox.brainkb.org\")."
+  description = "ALB DNS name — useful for testing before Route 53 records propagate (e.g., curl with -H \"Host: test.brainkb.org\")."
   value       = module.brainkb.alb_dns_name
 }
 

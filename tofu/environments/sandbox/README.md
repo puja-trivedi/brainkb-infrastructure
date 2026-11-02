@@ -50,22 +50,24 @@ and its three public subnets in us-east-2 (see `discovery.md`).
 
 - ACM certificate covering all three sandbox hostnames, DNS-validated
   through Route 53 automatically.
-- **The sandbox hostnames are not moved onto the new ALB yet.**
-  `create_app_dns_records = false` in `sandbox.tfvars` (team decision,
-  2026-11-02), so `sandbox.brainkb.org`,
-  `usermanagement.sandbox.brainkb.org` and
-  `mlservice.sandbox.brainkb.org` keep pointing at the
-  manually-built `sandbox-alb`. Test the new stack through its own
-  ALB address (see "Testing the new stack" below).
-- When the team decides to move them, set
-  `create_app_dns_records = true`: tofu then writes A-ALIAS records in
-  `brainkb.org` (zone `Z0691…`, per `discovery.md`) pointing each
-  hostname at the new ALB.
-- `dns_allow_overwrite = true` lets tofu write records that already
-  exist: the ACM validation CNAMEs now, and the hostnames' A records
-  from the manual setup once they're moved (per `sandbox/notes.md`).
-  Never set true for production — import existing records into state
-  first instead.
+- **Its own hostnames** (team decision, 2026-11-02):
+  `test.brainkb.org`, `usermanagement.test.brainkb.org` and
+  `mlservice.test.brainkb.org`. The existing `sandbox.brainkb.org`
+  names stay on the manually-built `sandbox-alb` and are never touched
+  by this stack.
+- **Not published yet**: `create_app_dns_records = false` in
+  `sandbox.tfvars`, so the `test.*` names don't resolve until the team
+  flips it to `true`. Then tofu writes A-ALIAS records in
+  `brainkb.org` (zone `Z0691…`, per `discovery.md`) pointing each one
+  at the new ALB. Until then, test through the ALB's own address (see
+  "Testing the new stack" below).
+- `dns_allow_overwrite = false`: if a `test.*` record (or a cert
+  validation record) already exists, apply fails instead of replacing
+  it. Check first with `dig +short test.brainkb.org`; empty output
+  means the name is free.
+- The apps' own config has to use the `test.*` URLs too (for example
+  `NEXTAUTH_URL` and the OAuth callback registered with the login
+  provider). That's set when the services are deployed, not here.
 
 **Storage — deliberately off by default in sandbox**
 
@@ -151,13 +153,13 @@ After apply, useful commands:
 
 ## Testing the new stack
 
-While the hostnames still point at the old `sandbox-alb`, reach the new
-ALB directly and tell it which hostname you mean with a Host header:
+Before the `test.*` names are published, reach the new ALB directly
+and tell it which hostname you mean with a Host header:
 
-    curl -k -H "Host: sandbox.brainkb.org" "https://$(tofu output -raw alb_dns_name)/"
+    curl -k -H "Host: test.brainkb.org" "https://$(tofu output -raw alb_dns_name)/"
 
-`-k` skips TLS verification because the cert is for the sandbox
-hostname, not the ALB's own AWS-generated name.
+`-k` skips TLS verification because the cert is for `test.brainkb.org`,
+not the ALB's own AWS-generated name.
 
 ## Destroy
 
