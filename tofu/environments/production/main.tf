@@ -43,14 +43,14 @@ resource "aws_instance" "app" {
 
 # launch-wizard-25, the only SG on the production instance. Rules are
 # inline so a single import (by SG ID) adopts the group and every rule.
-# Rule descriptions are best guesses from discovery.md — if plan shows
-# a description diff, copy the real text from AWS rather than applying.
+# Rules and descriptions match AWS as reported by the first
+# `tofu plan` (2026-11-02), including the typos — changing a
+# description revokes and re-adds that rule.
 resource "aws_security_group" "app" {
   name   = "launch-wizard-25"
   vpc_id = "vpc-056bce0f8a2a73bfe"
 
   ingress {
-    description = "SSH"
     protocol    = "tcp"
     from_port   = 22
     to_port     = 22
@@ -58,7 +58,6 @@ resource "aws_security_group" "app" {
   }
 
   ingress {
-    description = "HTTPS (ALB traffic)"
     protocol    = "tcp"
     from_port   = 443
     to_port     = 443
@@ -66,7 +65,7 @@ resource "aws_security_group" "app" {
   }
 
   ingress {
-    description = "UI (Next.js/PM2)"
+    description = "UI"
     protocol    = "tcp"
     from_port   = 3000
     to_port     = 3000
@@ -98,7 +97,7 @@ resource "aws_security_group" "app" {
   }
 
   ingress {
-    description = "usermanagement (OAuth callback)"
+    description = "oauth callback user management"
     protocol    = "tcp"
     from_port   = 8004
     to_port     = 8004
@@ -106,7 +105,7 @@ resource "aws_security_group" "app" {
   }
 
   ingress {
-    description = "ml_service / structsense"
+    description = "ml structsense"
     protocol    = "tcp"
     from_port   = 8007
     to_port     = 8007
@@ -114,7 +113,7 @@ resource "aws_security_group" "app" {
   }
 
   ingress {
-    description = "query_service"
+    description = "query service"
     protocol    = "tcp"
     from_port   = 8010
     to_port     = 8010
@@ -131,6 +130,7 @@ resource "aws_security_group" "app" {
 
   # Lustre client protocol from the FSx SG.
   ingress {
+    description     = "lusture"
     protocol        = "tcp"
     from_port       = 988
     to_port         = 988
@@ -138,15 +138,16 @@ resource "aws_security_group" "app" {
   }
 
   ingress {
+    description     = "lusture"
     protocol        = "tcp"
     from_port       = 1018
     to_port         = 1023
     security_groups = ["sg-09898d5bd183b7f15"]
   }
 
-  # Co-tenant sandbox ports (from the sandbox SG). These go away in the
-  # PR #5 cutover, once sandbox runs on its own instance — delete them
-  # here in the same change.
+  # Co-tenant sandbox ports. These go away in the PR #5 cutover, once
+  # sandbox runs on its own instance — delete them here in the same
+  # change.
   ingress {
     description     = "sandbox UI"
     protocol        = "tcp"
@@ -156,7 +157,7 @@ resource "aws_security_group" "app" {
   }
 
   ingress {
-    description     = "sandbox usermanagement"
+    description     = "sandbox oauth callback user management"
     protocol        = "tcp"
     from_port       = 18004
     to_port         = 18004
@@ -164,11 +165,29 @@ resource "aws_security_group" "app" {
   }
 
   ingress {
-    description     = "sandbox ml_service"
+    description     = "sandbox ml structsense"
     protocol        = "tcp"
     from_port       = 18007
     to_port         = 18007
     security_groups = ["sg-02e6912482926898b"]
+  }
+
+  ingress {
+    description     = "sandbox sb"
+    protocol        = "tcp"
+    from_port       = 18080
+    to_port         = 18080
+    security_groups = ["sg-02e6912482926898b"]
+  }
+
+  # Unlike the other sandbox ports, this one is open to the internet,
+  # not just the sandbox SG.
+  ingress {
+    description = "sandbox query_service"
+    protocol    = "tcp"
+    from_port   = 18010
+    to_port     = 18010
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -179,7 +198,6 @@ resource "aws_security_group" "app" {
   }
 
   # The "redundant explicit outbound to port 8004" from discovery.md.
-  # Its destination isn't recorded there; 0.0.0.0/0 is a guess.
   egress {
     protocol    = "tcp"
     from_port   = 8004
@@ -194,8 +212,9 @@ resource "aws_security_group" "app" {
   lifecycle {
     prevent_destroy = true
 
-    # The group's own description isn't in discovery.md, and changing
-    # it forces a replacement — so don't manage it.
-    ignore_changes = [description]
+    # Changing the group's own description forces a replacement, so
+    # don't manage it. revoke_rules_on_delete is tofu-only (no AWS
+    # setting); ignoring it keeps the import from showing as a change.
+    ignore_changes = [description, revoke_rules_on_delete]
   }
 }

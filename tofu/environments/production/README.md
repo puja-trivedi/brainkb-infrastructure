@@ -75,11 +75,11 @@ When the plan is clean:
 
 Post the plan output on the PR before applying, as was done for sandbox.
 
-## Known guesses to check on the first plan
+## First plan (2026-11-02)
 
-- SG rule descriptions are taken from discovery.md's "Purpose" column
-  and may not match the real text.
-- The extra egress rule on port 8004: its destination isn't recorded;
-  `0.0.0.0/0` is assumed.
-- Other instance tags besides `Name`: any not listed in `main.tf` would
-  show as removed. Add them to `main.tf` if so.
+The EC2 instance matched on the first run. The SG didn't: the rule
+descriptions in AWS differ from `discovery.md`'s "Purpose" column, and
+there were two rules `discovery.md` didn't list (18010 from
+`0.0.0.0/0`, 18080 from the sandbox SG). `main.tf` now copies AWS
+exactly, typos included. Re-run `tofu plan` and confirm it's clean
+before applying.
