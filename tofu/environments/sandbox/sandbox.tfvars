@@ -69,11 +69,12 @@ alb_targets = [
   },
 ]
 
-# Don't publish the test.* hostnames yet (team decision, 2026-11-02):
-# tofu builds the stack, and it's reached via its ALB address (see
-# README). Flip to true when the team is ready for test.brainkb.org
-# etc. to go live.
-create_app_dns_records = false
+# Publish the test.* hostnames as A-ALIAS records pointing at the ALB.
+# Turned on 2026-11-02 once the apps were installed on the instance and
+# all four hostnames answered through the ALB (UI and usermanagement
+# 200, mlservice and queryservice 404 at "/"). Set back to false to
+# take the names offline; the rest of the stack stays up.
+create_app_dns_records = true
 
 # False: tofu fails rather than replace a Route 53 record that already
 # exists. The test.* names are new, so nothing should exist; if one
