@@ -47,13 +47,13 @@ variable "alb_targets" {
 }
 
 variable "create_app_dns_records" {
-  description = "If true, point the sandbox hostnames at the tofu-managed ALB. False in sandbox.tfvars: the hostnames stay on the manually-built sandbox-alb for now."
+  description = "If true, publish the sandbox hostnames (test.brainkb.org etc.) as Route 53 records pointing at the ALB. False in sandbox.tfvars until the team is ready for them to go live."
   type        = bool
   default     = false
 }
 
 variable "dns_allow_overwrite" {
-  description = "If true, Route 53 records may replace existing records with the same name+type. True in sandbox so tofu can take over the sandbox.brainkb.org records already in place from the manual ALB setup (see sandbox/notes.md)."
+  description = "If true, Route 53 records may replace existing records with the same name+type. False in sandbox.tfvars: the test.* hostnames are new, so an existing record means a name clash."
   type        = bool
   default     = false
 }

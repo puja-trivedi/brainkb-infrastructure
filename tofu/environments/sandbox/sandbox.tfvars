@@ -30,47 +30,45 @@ hosted_zone_id = "Z06918342ADZVPCW09HXW"
 # sandbox.auto.tfvars (gitignored) or TF_VAR_ssh_allowed_cidrs. See
 # README.
 
-# Sandbox ALB routing. Ports match the sandbox +10000 convention;
-# hostnames mirror the sandbox/notes.md target. Health check paths are
+# Sandbox ALB routing. Ports match the sandbox +10000 convention.
+# Hostnames are new test.* names (team decision, 2026-11-02), separate
+# from the sandbox.* names the manually-built setup serves, so this
+# stack never takes those over. Health check paths are
 # "/" for the UI (Next.js will 200 on root) and TBD once each backend
 # service confirms its /health endpoint — leaving as "/" (matches all
 # non-empty responses of 200-299).
 alb_targets = [
   {
     name              = "ui"
-    hostname          = "sandbox.brainkb.org"
+    hostname          = "test.brainkb.org"
     port              = 13000
     health_check_path = "/"
   },
   {
     name              = "usermgmt"
-    hostname          = "usermanagement.sandbox.brainkb.org"
+    hostname          = "usermanagement.test.brainkb.org"
     port              = 18004
     health_check_path = "/"
   },
   {
     name              = "mlservice"
-    hostname          = "mlservice.sandbox.brainkb.org"
+    hostname          = "mlservice.test.brainkb.org"
     port              = 18007
     health_check_path = "/"
   },
 ]
 
-# Leave the sandbox hostnames on the manually-built sandbox-alb for
-# now (team decision, 2026-11-02): tofu builds the new stack, but
-# sandbox.brainkb.org, usermanagement.sandbox.brainkb.org and
-# mlservice.sandbox.brainkb.org keep serving from the current setup.
-# Test the new stack via its ALB address instead (see README). Flip to
-# true only when the team decides to move the hostnames over.
+# Don't publish the test.* hostnames yet (team decision, 2026-11-02):
+# tofu builds the stack, and it's reached via its ALB address (see
+# README). Flip to true when the team is ready for test.brainkb.org
+# etc. to go live.
 create_app_dns_records = false
 
-# Lets tofu write Route 53 records that already exist. With
-# create_app_dns_records = false this only affects the ACM validation
-# CNAMEs (which may already exist from the manual cert); when the
-# hostnames are moved over, it also lets tofu take over their A
-# records from sandbox-alb (per sandbox/notes.md step 7b). NEVER set
-# true in production — import existing records into state instead.
-dns_allow_overwrite = true
+# False: tofu fails rather than replace a Route 53 record that already
+# exists. The test.* names are new, so nothing should exist; if one
+# does, that's a name clash to sort out by hand, not to overwrite.
+# NEVER set true in production — import existing records instead.
+dns_allow_overwrite = false
 
 # Sandbox does not create FSx by default — bootstrap.md notes it's
 # not needed for sandbox use, and Oxigraph will fall back to a Docker
