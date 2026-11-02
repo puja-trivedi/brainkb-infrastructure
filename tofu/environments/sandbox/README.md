@@ -67,7 +67,8 @@ and its three public subnets in us-east-2 (see `discovery.md`).
   means the name is free.
 - The apps' own config has to use the `test.*` URLs too (for example
   `NEXTAUTH_URL` and the OAuth callback registered with the login
-  provider). That's set when the services are deployed, not here.
+  provider). That's set when the services are deployed, not here: see
+  `sandbox/new-server-setup.md` for installing the apps on this server.
 
 **Storage — deliberately off by default in sandbox**
 
